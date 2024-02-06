@@ -1,0 +1,740 @@
+package site;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemFactory;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+public class FileUploadServlet extends HttpServlet {
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        response.sendRedirect(getServletContext().getRealPath("/"));
+    }
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+
+        if (isMultipart) {
+            FileItemFactory factory = new DiskFileItemFactory();
+            ServletFileUpload upload = new ServletFileUpload(factory);
+
+            try {
+                List items = upload.parseRequest(request);
+                Iterator iterator = items.iterator();
+                while (iterator.hasNext()) {
+                    FileItem item = (FileItem) iterator.next();
+                    if (!item.isFormField()) {
+                        String fileName = new File(item.getName()).getName();
+                        String root = getServletContext().getRealPath("/");
+                        File path = new File(root + File.separator + "uploads");
+                        if (!path.exists()) {
+                            boolean status = path.mkdirs();
+                        }
+
+                        File uploadedFile = new File(path + File.separator + fileName);
+                        System.out.println("File uploaded. Path=" + uploadedFile.getAbsolutePath());
+                        item.write(uploadedFile);
+
+                        response.getWriter().println("<html><body>");
+                        response.getWriter().println("<h2>File uploaded successfully</h2>");
+                        response.getWriter().println("<img src=\"uploads/" + fileName + "\" alt=\"Uploaded Image\"><br/>");
+                        response.getWriter().println("<p>Access the file here: <a href=\"uploads/" + fileName + "\" target=\"_blank\">" + fileName + "</a></p>");
+                        response.getWriter().println("<p><a href=\"" + request.getContextPath() + "\">Upload another file</a></p>");
+                        response.getWriter().println("</body></html>");
+                        response.getWriter().flush();
+
+                    }
+                }
+            } catch (FileUploadException e) {
+                e.printStackTrace();
+                response.sendRedirect(request.getContextPath());
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendRedirect(request.getContextPath());
+            }
+        } else {
+            response.sendRedirect(request.getContextPath());
+        }
+    }
+
+}
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload App</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            background-image: url('https://images4.alphacoders.com/610/610757.jpg');
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        h1 {
+            text-align: top;
+            color: #333;
+            margin-bottom: 50px;
+        }
+
+        fieldset {
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            margin: 20px;
+            padding: 20px;
+            text-align: center;
+            background-color: #fff;
+        }
+
+        legend {
+            font-size: 1.2em;
+            color: #3498db;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>File Upload Form</h1>
+    <fieldset>
+        <legend>Upload File</legend>
+        <form action="fileuploadservlet" method="post" enctype="multipart/form-data">
+            <label for="fileName">Select File:</label>
+            <input id="fileName" type="file" name="fileName" />
+            <input type="submit" value="Upload" />
+        </form>
+    </fieldset>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//LỌC PHÍA BACKEND
+
+package site;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemFactory;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+public class FileUploadServlet extends HttpServlet {
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+	        throws ServletException, IOException {
+	    boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+
+	    if (isMultipart) {
+	        FileItemFactory factory = new DiskFileItemFactory();
+	        ServletFileUpload upload = new ServletFileUpload(factory);
+
+	        try {
+	            List items = upload.parseRequest(request);
+	            Iterator iterator = items.iterator();
+	            while (iterator.hasNext()) {
+	                FileItem item = (FileItem) iterator.next();
+	                if (!item.isFormField()) {
+	                    String fileName = new File(item.getName()).getName();
+	                    // Kiểm tra đuôi file
+	                   if (fileName.toLowerCase().endsWith(".jpg") || fileName.toLowerCase().endsWith(".png") ) {
+	                        String root = getServletContext().getRealPath("/");
+	                        File path = new File(root + File.separator + "uploads");
+	                        if (!path.exists()) {
+	                            boolean status = path.mkdirs();
+	                        }
+
+	                        File uploadedFile = new File(path + File.separator + fileName);
+	                        System.out.println("File uploaded. Path=" + uploadedFile.getAbsolutePath());
+	                        item.write(uploadedFile);
+
+	                        response.getWriter().println("<html><body>");
+	                        response.getWriter().println("<h2>File uploaded successfully</h2>");
+	                        response.getWriter().println("<img src=\"uploads/" + fileName + "\" alt=\"Uploaded Image\"><br/>");
+	                        response.getWriter().println("<p>Access the file here: <a href=\"uploads/" + fileName + "\" target=\"_blank\">" + fileName + "</a></p>");
+	                        response.getWriter().println("<p><a href=\"" + request.getContextPath() + "\">Upload another file</a></p>");
+	                        response.getWriter().println("</body></html>");
+	                        response.getWriter().flush();
+	                    } else {
+	                        // Nếu đuôi file không đúng, hiển thị thông báo
+	                        response.getWriter().println("<html><body>");
+	                        response.getWriter().println("<h2>File upload failed</h2>");
+	                        response.getWriter().println("<p>Only .jpg and .png files are allowed.</p>");
+	                        response.getWriter().println("<p><a href=\"" + request.getContextPath() + "\">Upload another file</a></p>");
+	                        response.getWriter().println("</body></html>");
+	                        response.getWriter().flush();
+	                    }
+	                }
+	            }
+	        } catch (FileUploadException e) {
+	            e.printStackTrace();
+	            response.sendRedirect(request.getContextPath());
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            response.sendRedirect(request.getContextPath());
+	        }
+	    } else {
+	        response.sendRedirect(request.getContextPath());
+	    }
+	}
+
+}
+
+
+
+
+
+
+
+
+
+//LỌC PHÍA FRONT_END
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload App</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            background-image: url('https://images4.alphacoders.com/610/610757.jpg');
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        h1 {
+            text-align: top;
+            color: #333;
+            margin-bottom: 50px;
+        }
+
+        fieldset {
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            margin: 20px;
+            padding: 20px;
+            text-align: center;
+            background-color: #fff;
+        }
+
+        legend {
+            font-size: 1.2em;
+            color: #3498db;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+    </style>
+    <script>
+        function validateFileExtension() {
+            var fileNameInput = document.getElementById('fileName');
+            var fileName = fileNameInput.value.toLowerCase();
+
+            if (!fileName.endsWith('.jpg')) {
+                alert('Error: You can only upload files with .jpg or .png extension.');
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</head>
+
+<body>
+    <h1>File Upload Form</h1>
+    <fieldset>
+        <legend>Upload File</legend>
+        <form action="fileuploadservlet" method="post" enctype="multipart/form-data" onsubmit="return validateFileExtension();">
+            <label for="fileName">Select File:</label>
+            <input id="fileName" type="file" name="fileName" />
+            <input type="submit" value="Upload" />
+        </form>
+    </fieldset>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//LỌC CONTENT_TYPE
+package site;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemFactory;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+public class FileUploadServlet extends HttpServlet {
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.sendRedirect(getServletContext().getRealPath("/"));
+    }
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+
+        if (isMultipart) {
+            FileItemFactory factory = new DiskFileItemFactory();
+            ServletFileUpload upload = new ServletFileUpload(factory);
+
+            try {
+                List items = upload.parseRequest(request);
+                Iterator iterator = items.iterator();
+                while (iterator.hasNext()) {
+                    FileItem item = (FileItem) iterator.next();
+                    if (!item.isFormField()) {
+                        String fileName = new File(item.getName()).getName();
+                        String root = getServletContext().getRealPath("/");
+                        File path = new File(root + File.separator + "uploads");
+                        if (!path.exists()) {
+                            boolean status = path.mkdirs();
+                        }
+
+                        File uploadedFile = new File(path + File.separator + fileName);
+                        
+                        // Kiểm tra content type
+                        if (!item.getContentType().equals("image/jpeg")) {
+                            response.getWriter().println("<html><body>");
+                            response.getWriter().println("<h2>Error: You can only upload files with content type image/jpeg</h2>");
+                            response.getWriter().println("</body></html>");
+                            response.getWriter().flush();
+                            return;
+                        }
+
+                        // Kiểm tra nội dung tệp (đây chỉ là một ví dụ, bạn có thể thực hiện kiểm tra chi tiết hơn)
+                        byte[] fileContent = item.get();
+                        if (fileContent.length < 10 || fileContent[0] != (byte) 0xFF || fileContent[1] != (byte) 0xD8) {
+                            response.getWriter().println("<html><body>");
+                            response.getWriter().println("<h2>Error: Invalid file content</h2>");
+                            response.getWriter().println("</body></html>");
+                            response.getWriter().flush();
+                            return;
+                        }
+
+                        // Lưu tệp vào thư mục uploads
+                        item.write(uploadedFile);
+
+                        // Trả về thông báo thành công
+                        response.getWriter().println("<html><body>");
+                        response.getWriter().println("<h2>File uploaded successfully</h2>");
+                        response.getWriter().println("<img src=\"uploads/" + fileName + "\" alt=\"Uploaded Image\"><br/>");
+                        response.getWriter().println("<p>Access the file here: <a href=\"uploads/" + fileName + "\" target=\"_blank\">" + fileName + "</a></p>");
+                        response.getWriter().println("<p><a href=\"" + request.getContextPath() + "\">Upload another file</a></p>");
+                        response.getWriter().println("</body></html>");
+                        response.getWriter().flush();
+                    }
+                }
+            } catch (FileUploadException e) {
+                e.printStackTrace();
+                response.sendRedirect(request.getContextPath());
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendRedirect(request.getContextPath());
+            }
+        } else {
+            response.sendRedirect(request.getContextPath());
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+//ĐỔi .JSP về khoảng trắng 
+package site;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemFactory;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+public class FileUploadServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+
+        if (isMultipart) {
+            FileItemFactory factory = new DiskFileItemFactory();
+            ServletFileUpload upload = new ServletFileUpload(factory);
+
+            try {
+                List items = upload.parseRequest(request);
+                Iterator iterator = items.iterator();
+                while (iterator.hasNext()) {
+                    FileItem item = (FileItem) iterator.next();
+                    if (!item.isFormField()) {
+                        String fileName = new File(item.getName()).getName();
+
+  //Filter JSP
+                        fileName = fileName.replaceAll("\\.jsp$", "").replaceAll("\\.JSP$", "");
+
+                        String root = getServletContext().getRealPath("/");
+                        File path = new File(root + File.separator + "uploads");
+                        if (!path.exists()) {
+                            boolean status = path.mkdirs();
+                        }
+
+                        File uploadedFile = new File(path + File.separator + fileName);
+                        System.out.println("File uploaded. Path=" + uploadedFile.getAbsolutePath());
+                        item.write(uploadedFile);
+
+                        response.getWriter().println("<html><body>");
+                        response.getWriter().println("<h2>File uploaded successfully</h2>");
+                        response.getWriter().println("<img src=\"uploads/" + fileName + "\" alt=\"Uploaded Image\"><br/>");
+                        response.getWriter().println("<p>Access the file here: <a href=\"uploads/" + fileName
+                                + "\" target=\"_blank\">" + fileName + "</a></p>");
+                        response.getWriter().println(
+                                "<p><a href=\"" + request.getContextPath() + "\">Upload another file</a></p>");
+                        response.getWriter().println("</body></html>");
+                        response.getWriter().flush();
+                    }
+                }
+            } catch (FileUploadException e) {
+                e.printStackTrace();
+                response.sendRedirect(request.getContextPath());
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendRedirect(request.getContextPath());
+            }
+        } else {
+            response.sendRedirect(request.getContextPath());
+        }
+    }
+}
+
+
+
+
+
+
+
+//Chặn .JSP (CÁCH XỬ LÍ filename="index.j\jsp\.jsp")
+package site;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemFactory;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+public class FileUploadServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+
+        if (isMultipart) {
+            FileItemFactory factory = new DiskFileItemFactory();
+            ServletFileUpload upload = new ServletFileUpload(factory);
+
+            try {
+                List items = upload.parseRequest(request);
+                Iterator iterator = items.iterator();
+                while (iterator.hasNext()) {
+                    FileItem item = (FileItem) iterator.next();
+                    if (!item.isFormField()) {
+                        String fileName = new File(item.getName()).getName();
+
+                        // Kiểm tra xem tên file có chứa .jsp 
+                        if (fileName.toLowerCase().endsWith(".jsp") && !(".jsp".equals(fileName.toLowerCase())|| fileName.toLowerCase().endsWith(".jpg") || fileName.toLowerCase().endsWith(".png"))) {
+                            response.getWriter().println("<html><body>");
+                            response.getWriter().println("<h2>File upload failed</h2>");
+                            response.getWriter().println("<p>Files with .jsp extension are not allowed.</p>");
+                            response.getWriter().println("<p><a href=\"" + request.getContextPath() + "\">Upload another file</a></p>");
+                            response.getWriter().println("</body></html>");
+                            response.getWriter().flush();
+                            return;
+                        }
+
+                        String root = getServletContext().getRealPath("/");
+                        File path = new File(root + File.separator + "uploads");
+                        if (!path.exists()) {
+                            boolean status = path.mkdirs();
+                        }
+
+                        File uploadedFile = new File(path + File.separator + fileName);
+                        System.out.println("File uploaded. Path=" + uploadedFile.getAbsolutePath());
+                        item.write(uploadedFile);
+
+                        response.getWriter().println("<html><body>");
+                        response.getWriter().println("<h2>File uploaded successfully</h2>");
+                        response.getWriter().println("<img src=\"uploads/" + fileName + "\" alt=\"Uploaded Image\"><br/>");
+                        response.getWriter().println("<p>Access the file here: <a href=\"uploads/" + fileName
+                                + "\" target=\"_blank\">" + fileName + "</a></p>");
+                        response.getWriter().println("<p><a href=\"" + request.getContextPath() + "\">Upload another file</a></p>");
+                        response.getWriter().println("</body></html>");
+                        response.getWriter().flush();
+                    }
+                }
+            } catch (FileUploadException e) {
+                e.printStackTrace();
+                response.sendRedirect(request.getContextPath());
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendRedirect(request.getContextPath());
+            }
+        } else {
+            response.sendRedirect(request.getContextPath());
+        }
+    }
+}
+
+
+
+
+
+
+
+race condition 1 
+package site;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemFactory;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+public class FileUploadServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+
+        if (isMultipart) {
+            FileItemFactory factory = new DiskFileItemFactory();
+            ServletFileUpload upload = new ServletFileUpload(factory);
+
+            try {
+                List items = upload.parseRequest(request);
+                Iterator iterator = items.iterator();
+                while (iterator.hasNext()) {
+                    FileItem item = (FileItem) iterator.next();
+                    if (!item.isFormField()) {
+                        String fileName = new File(item.getName()).getName();
+
+                        // Di chuyển file trực tiếp vào thư mục upload
+                        String root = getServletContext().getRealPath("/");
+                        File uploadPath = new File(root + File.separator + "uploads");
+                        if (!uploadPath.exists()) {
+                            boolean status = uploadPath.mkdirs();
+                        }
+
+                        File uploadedFile = new File(uploadPath + File.separator + fileName);
+                        item.write(uploadedFile);
+
+                        // Kiểm tra đuôi file
+                        if (fileName.toLowerCase().endsWith(".jpg") || fileName.toLowerCase().endsWith(".png")) {
+                            System.out.println("File uploaded. Path=" + uploadedFile.getAbsolutePath());
+
+                            response.getWriter().println("<html><body>");
+                            response.getWriter().println("<h2>File uploaded successfully</h2>");
+                            response.getWriter().println("<img src=\"uploads/" + fileName + "\" alt=\"Uploaded Image\"><br/>");
+                            response.getWriter().println("<p>Access the file here: <a href=\"uploads/" + fileName
+                                    + "\" target=\"_blank\">" + fileName + "</a></p>");
+                            response.getWriter().println(
+                                    "<p><a href=\"" + request.getContextPath() + "\">Upload another file</a></p>");
+                            response.getWriter().println("</body></html>");
+                            response.getWriter().flush();
+                        } else {
+                            // Nếu đuôi file không đúng, xóa file và hiển thị thông báo
+                            uploadedFile.delete();
+                            response.getWriter().println("<html><body>");
+                            response.getWriter().println("<h2>File upload failed</h2>");
+                            response.getWriter().println("<p>Only .jpg and .png files are allowed.</p>");
+                            response.getWriter().println(
+                                    "<p><a href=\"" + request.getContextPath() + "\">Upload another file</a></p>");
+                            response.getWriter().println("</body></html>");
+                            response.getWriter().flush();
+                        }
+                    }
+                }
+            } catch (FileUploadException e) {
+                e.printStackTrace();
+                response.sendRedirect(request.getContextPath());
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendRedirect(request.getContextPath());
+            }
+        } else {
+            response.sendRedirect(request.getContextPath());
+        }
+    }
+}
+
+

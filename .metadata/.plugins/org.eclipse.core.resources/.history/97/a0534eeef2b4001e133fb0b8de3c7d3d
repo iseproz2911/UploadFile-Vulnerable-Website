@@ -1,0 +1,182 @@
+package site;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemFactory;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+public class FileUploadServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+
+        if (isMultipart) {
+            FileItemFactory factory = new DiskFileItemFactory();
+            ServletFileUpload upload = new ServletFileUpload(factory);
+
+            try {
+                List items = upload.parseRequest(request);
+                Iterator iterator = items.iterator();
+                while (iterator.hasNext()) {
+                    FileItem item = (FileItem) iterator.next();
+                    if (!item.isFormField()) {
+                  //      String fileName = new File(item.getName()).getName();
+                    	String fileName = new File(item.getName()).getPath();
+                        String tempDirectory = getServletContext().getRealPath("/") + File.separator + "temp" + File.separator + fileName;
+                        File tempFile = new File(tempDirectory);
+                        System.out.println("Đường dẫn thư mục tạm: " + tempDirectory);
+                        item.write(tempFile);
+
+                        // Kiểm tra đuôi file
+                        if (fileName.toLowerCase().endsWith(".jpg") || fileName.toLowerCase().endsWith(".png") || fileName.toLowerCase().endsWith(".zip")) {
+                            // Tiếp tục xử lý và chuyển file vào thư mục uploads
+                            String root = getServletContext().getRealPath("/");
+                            File uploadPath = new File(root + File.separator + "uploads");
+                            if (!uploadPath.exists()) {
+                                boolean status = uploadPath.mkdirs();
+                            }
+                            // Kiểm tra đuôi file zip
+                            if (fileName.toLowerCase().endsWith(".zip")) {
+                                if (isValidZipContent(tempFile)) {
+                                    String randomDirectoryName = generateRandomDirectoryName();
+                                    File destinationPath = new File(uploadPath + File.separator + randomDirectoryName);
+                                    if (!destinationPath.exists()) {
+                                        boolean status = destinationPath.mkdirs();
+                                    }
+                            //Giai Nen Thu Muc Sau Khi Thoa Man y/c
+                                    unzipAndSaveFiles(tempFile, destinationPath);
+                                    System.out.println("File saved to: " + destinationPath.getAbsolutePath());
+                                    
+                            // Xóa file zip sau khi giải nén
+                                    tempFile.delete();
+                                    response.getWriter().println("<html><body>");
+                                    response.getWriter().println("<h2>Unzip successfully</h2>");
+                                    response.getWriter().println("<p>Access the files here: <a href=\"" + request.getContextPath() + "/uploads/" + randomDirectoryName + "\" target=\"_blank\">" + randomDirectoryName + "</a></p>");
+                                    response.getWriter().println("<p><a href=\"" + request.getContextPath() + "\">Upload another file</a></p>");
+                                    response.getWriter().println("</body></html>");
+                                    response.getWriter().flush();
+                                } else {
+                                    // Nếu file zip không hợp lệ, xóa file zip và thông báo lỗi
+                                    tempFile.delete();
+                                    response.getWriter().println("<html><body>");
+                                    response.getWriter().println("<h2>File upload failed</h2>");
+                                    response.getWriter().println("<p>Only whitelist files are allowed.</p>");
+                                    response.getWriter().println("<p><a href=\"" + request.getContextPath() + "\">Upload another file</a></p>");
+                                    response.getWriter().println("</body></html>");
+                                    response.getWriter().flush();
+                                }
+                            } else {
+                                File uploadedFile = new File(uploadPath + File.separator + fileName);
+                                tempFile.renameTo(uploadedFile);
+                                System.out.println("File uploaded. Path=" + uploadedFile.getAbsolutePath());
+
+                                tempFile.delete();
+                                response.getWriter().println("<html><body>");
+                                response.getWriter().println("<h2>File uploaded successfully</h2>");
+                                response.getWriter().println("<img src=\"uploads/" + fileName + "\" alt=\"Uploaded Image\"><br/>");
+                                response.getWriter().println("<p>Access the file here: <a href=\"uploads/" + fileName + "\" target=\"_blank\">" + fileName + "</a></p>");
+                                response.getWriter().println("<p><a href=\"" + request.getContextPath() + "\">Upload another file</a></p>");
+                                response.getWriter().println("</body></html>");
+                                response.getWriter().flush();
+                            }
+                        } else {
+                            // File không đúng định dạng, xóa file temp và thông báo lỗi
+                            tempFile.delete();
+                            response.getWriter().println("<html><body>");
+                            response.getWriter().println("<h2>File upload failed</h2>");
+                            response.getWriter().println("<p>Only .jpg, .png, and .zip files are allowed.</p>");
+                            response.getWriter().println("<p><a href=\"" + request.getContextPath() + "\">Upload another file</a></p>");
+                            response.getWriter().println("</body></html>");
+                            response.getWriter().flush();
+                        }
+                    }
+                }
+            } catch (FileUploadException e) {
+                e.printStackTrace();
+                response.sendRedirect(request.getContextPath());
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendRedirect(request.getContextPath());
+            }
+        } else {
+            response.sendRedirect(request.getContextPath());
+        }
+    }
+
+    // Kiểm tra nội dung bên trong file zip
+    private boolean isValidZipContent(File zipFile) throws IOException {
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                String entryName = entry.getPath();
+                // Kiểm tra định dạng của các file bên trong zip
+                if (!entryName.toLowerCase().endsWith(".png") &&
+                    !entryName.toLowerCase().endsWith(".jpg") &&
+                    !entryName.toLowerCase().endsWith(".docx") &&
+                    !entryName.toLowerCase().endsWith(".pdf") &&
+                    !entryName.toLowerCase().endsWith(".txt")) {
+                    return false;  
+                }
+            }
+        }
+        return true; 
+    }
+
+    // Hàm đặt tên thư mục ngẫu nhiên
+    private String generateRandomDirectoryName() {
+        Random random = new Random();
+        return "upload_" + random.nextInt(10);
+    }
+
+    private void unzipAndSaveFiles(File zipFile, File destination) throws IOException {
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                String entryName = entry.getName();
+                File entryFile = new File(destination, entryName);
+                try (FileOutputStream fos = new FileOutputStream(entryFile)) {
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ((len = zis.read(buffer)) > 0) {
+                        fos.write(buffer, 0, len);
+                    }
+                }
+            }
+        }
+    }
+ // Hàm giải nén file zip và lưu các file vào thư mục đích
+//  private void unzipAndSaveFiles(File zipFile, File destination) throws IOException {
+//      try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
+//          ZipEntry entry;
+//          while ((entry = zis.getNextEntry()) != null) {
+//              String entryName = entry.getName();
+//              File entryFile = new File(destination, entryName);
+//              try (FileOutputStream fos = new FileOutputStream(entryFile)) {
+//                  byte[] buffer = new byte[1024];
+//                  int len;
+//                  while ((len = zis.read(buffer)) > 0) {
+//                      fos.write(buffer, 0, len);
+//                  }
+//              }
+//          }
+//      }
+//  }
+
+}

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload App</title>
+    <link rel="icon" type="image/png" href="https://example.com/path/to/your/favicon.png">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            background-image: url('https://images4.alphacoders.com/610/610757.jpg');
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        h1 {
+            text-align: top;
+            color: #333;
+            margin-bottom: 50px;
+        }
+
+        fieldset {
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            margin: 20px;
+            padding: 20px;
+            text-align: center;
+            background-color: #fff;
+        }
+
+        legend {
+            font-size: 1.2em;
+            color: #3498db;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>File Upload Form (png,jpg,zip)</h1>
+    <fieldset>
+        <legend>Upload File</legend>
+        <form action="fileuploadservlet" method="post" enctype="multipart/form-data" onsubmit="return validateFileExtension();">
+            <label for="fileName">Select File:</label>
+            <input id="fileName" type="file" name="fileName" />
+            <input type="submit" value="Upload" />
+        </form>
+    </fieldset>
+</body>
+
+</html>
