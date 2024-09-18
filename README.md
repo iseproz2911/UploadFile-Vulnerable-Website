@@ -10,3 +10,5 @@ File upload lead to RCE
 Bybass (Black-List, White-List, MIME type, Magic Byte)
 
 Variants (Path Traversal combine Race Condition , Zip-Slip)
+
+Writeup solve challenge PortSwiggerLab by me: [https://hackmd.io/DvKUFVKhQHmR-1alLouemA](https://hackmd.io/@iamproz2911/B1oZDm5jC)
